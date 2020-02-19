@@ -7,6 +7,7 @@ import './styles/styles.css';
 import './styles/less.less';
 import './styles/scss.scss';
 import WebpackLogo from './assets/webpack-logo.png';
+import './babel';
 
 const post = new Post("Webpack post title2", WebpackLogo);
 $('pre').html(post.toString())
