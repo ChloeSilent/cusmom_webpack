@@ -1,7 +1,24 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCssAssetPlugin = require('optimize-css-assets-webpack-plugin');
+const TerserWebpackPlugin = require('terser-webpack-plugin');
 
+const isDev = process.env.NODE_ENV === 'development';// определяет какой режим сборки
+const isProd = !isDev;
+const optimisation = () => {
+    const config = {
+        splitChunks: {chunks: 'all'}
+    };
+    if (isProd) {
+        config.minimizer = [new OptimizeCssAssetPlugin(), new TerserWebpackPlugin()]
+    }
+    return config;
+};
+
+console.log("isDev", isDev)
 module.exports = {
     context: path.resolve(__dirname, 'src'),
     /*
@@ -38,8 +55,11 @@ module.exports = {
     /*если у нас есть библиотека, например jQuery и она используется в разных точках входа,
     * то в dist будет 2 раза загружена jquery = сайт будет медленно грузиться
     * Что бы это исзбежать используется splitChunks optimization, который вынесет такую библиотеку в vendors файл*/
-    optimization: {
-        splitChunks:{ chunks: 'all'}
+    optimization: optimisation(),
+    /*настройки порта для сервера*/
+    devServer: {
+        port: 4200,
+        hot: isDev
     },
     /* Плагины — это почти то же самое, что и загрузчики, но под стероидами.
     * Они могут сделать то, что не могут загрузчики.
@@ -49,18 +69,50 @@ module.exports = {
     *
     * CleanWebpackPlugin, используется перед перегенерацией файлов,
     * чтобы очистить нашу папку dist/ и получить аккуратный файл с конфигурацией.
+    *
+    * Плагины подключаются через new Название_плагина, который был заимпортен в начале конфига
     * */
     plugins: [
         new HtmlWebpackPlugin({
-            template: './index.html'
+            template: './index.html',
+            minify: {
+                collapseWhitespace: isProd//минификация html если билдим
+            }
         }),
-        new CleanWebpackPlugin()
+        new CleanWebpackPlugin(),
+        new CopyWebpackPlugin([
+            {
+                from: path.resolve(__dirname, 'src/favicon.ico'),
+                to: path.resolve(__dirname, 'dist')
+            }
+        ]),
+        new MiniCssExtractPlugin({
+            filename: '[name].[contenthash].css'
+        })
     ],
     module: {
         rules: [
             {
                 test: /\.css$/,
-                use: ['style-loader', 'css-loader']// Порядок выполнения перевернут (последнее выполняется первым).
+                use: [{
+                    loader: MiniCssExtractPlugin.loader,
+                    options: {
+                        hmr: isDev, // hot module replacement включается только в development mode
+                        reloadAll: true
+                    },
+                },
+                    'css-loader']// Порядок выполнения перевернут (последнее выполняется первым).
+            },
+            {
+                test: /\.less$/,
+                use: [{
+                    loader: MiniCssExtractPlugin.loader,
+                    options: {
+                        hmr: isDev, // hot module replacement включается только в development mode
+                        reloadAll: true
+                    },
+                },
+                    'css-loader', 'less-loader']// Порядок выполнения перевернут (последнее выполняется первым).
             },
             {
                 test: /\.(png|jpg|webp|jpeg|svg|gif)$/,
