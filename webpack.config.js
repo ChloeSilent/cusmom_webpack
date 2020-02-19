@@ -1,6 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 
 module.exports = {
     context: path.resolve(__dirname, 'src'),
@@ -26,10 +26,17 @@ module.exports = {
         path: path.resolve(__dirname, 'dist')
     },
     resolve: {
-        extensions: ['.js', '.json']
+        /* все форматы, указанные здесь можно не указывать в импортах ,
+         те пишем import Post from './pos.js';,а import Post from './post';*/
+        extensions: ['.js', '.json'],
+        /* это указание путей, например @/node_modules  */
+        alias: {
+            '@models': path.resolve(__dirname, 'src/models'),
+            '@': path.resolve(__dirname, 'src'),
+        }
     },
-    /*
-    * Плагины — это почти то же самое, что и загрузчики, но под стероидами.
+
+    /* Плагины — это почти то же самое, что и загрузчики, но под стероидами.
     * Они могут сделать то, что не могут загрузчики.
     * Ко всему прочему, Webpack построен на системе плагинов,
     * которые вы используете в своем файле конфигурации.
@@ -48,22 +55,22 @@ module.exports = {
         rules: [
             {
                 test: /\.css$/,
-                use: ['style-loader','css-loader']// Порядок выполнения перевернут (последнее выполняется первым).
+                use: ['style-loader', 'css-loader']// Порядок выполнения перевернут (последнее выполняется первым).
             },
             {
                 test: /\.(png|jpg|webp|jpeg|svg|gif)$/,
                 use: ['file-loader']// webpack идет с право на лево, те сначала он
             },
             {
-                test:/\.(ttf|woff|woff2|eot)$/,
+                test: /\.(ttf|woff|woff2|eot)$/,
                 use: ['file-loader']
             },
             {
-                test:/\.xml$/,
+                test: /\.xml$/,
                 use: ['xml-loader']
             },
             {
-                test:/\.csv$/,
+                test: /\.csv$/,
                 use: ['csv-loader']
             }
         ]

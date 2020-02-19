@@ -1,5 +1,6 @@
 @import "roboto.css";
 @import "~normalize.css";
+/*тильда указывает на то, что нужно искать пакет в node_modules*/
 body {
     font-family: 'Roboto', sanf-serif;
 }
