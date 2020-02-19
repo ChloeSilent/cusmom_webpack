@@ -4,6 +4,7 @@ import json from './assets/json.json';
 import xml from './assets/data.xml';
 import csv from './assets/data.csv';
 import './styles/styles.css'
+import './styles/less.less'
 import WebpackLogo from './assets/webpack-logo.png';
 
 const post = new Post("Webpack post title2", WebpackLogo);
