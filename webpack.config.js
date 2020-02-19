@@ -5,6 +5,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetPlugin = require('optimize-css-assets-webpack-plugin');
 const TerserWebpackPlugin = require('terser-webpack-plugin');
+const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 
 const isDev = process.env.NODE_ENV === 'development';// определяет какой режим сборки
 const isProd = !isDev;
@@ -18,7 +19,7 @@ const optimisation = () => {
     return config;
 };
 
-const fileName = ext => isDev ? `[name].${ext}`: `[name].[hash]${ext}`;
+const fileName = ext => isDev ? `[name].${ext}` : `[name].[hash]${ext}`;
 const cssLoaders = (extraLoader) => {
     const loaders = [{
         loader: MiniCssExtractPlugin.loader,
@@ -28,10 +29,59 @@ const cssLoaders = (extraLoader) => {
         },
     },
         'css-loader'];
-    if(extraLoader){
+    if (extraLoader) {
         loaders.push(extraLoader)
     }
     return loaders
+};
+
+const babelOptions = (extraPreset) => {
+    const config = {
+        presets: ['@babel/preset-env',]
+    };
+    if (extraPreset) {
+        config.presets.push(extraPreset);
+    }
+    return config;
+};
+
+const jsLoaders = () => {
+    const loaders = [
+        {
+            loader: 'babel-loader',
+            options: babelOptions()
+        }
+    ];
+    if (isDev) {
+        loaders.push('eslint-loader')
+    }
+    return loaders;
+};
+
+const plugins = () => {
+    const base = [
+        new HtmlWebpackPlugin({
+            template: './index.html',
+            minify: {
+                collapseWhitespace: isProd//минификация html если билдим
+            }
+        }),
+        new CleanWebpackPlugin(),
+        new CopyWebpackPlugin([
+            {
+                from: path.resolve(__dirname, 'src/favicon.ico'),
+                to: path.resolve(__dirname, 'dist')
+            }
+        ]),
+        new MiniCssExtractPlugin({
+            filename: fileName('css')
+        })
+    ];
+
+    if(isProd) {
+        base.push(new BundleAnalyzerPlugin())
+    }
+    return base;
 };
 
 console.log("isDev", isDev)
@@ -51,8 +101,8 @@ module.exports = {
 * поскольку многое из режима development в нем отсутствует.*/
     mode: 'development',
     entry: {
-        main: ['@babel/polyfill', './index.js'],
-        analytics: './analytics.js'
+        main: ['@babel/polyfill', './index.jsx'],
+        analytics: './analytics.ts'
     },
     output: {
         filename: fileName('js'),
@@ -72,6 +122,7 @@ module.exports = {
     * то в dist будет 2 раза загружена jquery = сайт будет медленно грузиться
     * Что бы это исзбежать используется splitChunks optimization, который вынесет такую библиотеку в vendors файл*/
     optimization: optimisation(),
+    devtool: isDev ? 'source-map' : '',
     /*настройки порта для сервера*/
     devServer: {
         port: 4200,
@@ -88,24 +139,7 @@ module.exports = {
     *
     * Плагины подключаются через new Название_плагина, который был заимпортен в начале конфига
     * */
-    plugins: [
-        new HtmlWebpackPlugin({
-            template: './index.html',
-            minify: {
-                collapseWhitespace: isProd//минификация html если билдим
-            }
-        }),
-        new CleanWebpackPlugin(),
-        new CopyWebpackPlugin([
-            {
-                from: path.resolve(__dirname, 'src/favicon.ico'),
-                to: path.resolve(__dirname, 'dist')
-            }
-        ]),
-        new MiniCssExtractPlugin({
-            filename: fileName('css')
-        })
-    ],
+    plugins: plugins(),
     module: {
         rules: [
             {
@@ -138,23 +172,26 @@ module.exports = {
                 use: ['csv-loader']
             },
             {
-                test: /\.m?js$/,
+                test: /\.js$/,
                 exclude: /(node_modules|bower_components)/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: ['@babel/preset-env']
-                    }
-                }
+                use: jsLoaders()
             },
             {
                 test: /\.ts$/,
                 exclude: /(node_modules|bower_components)/,
                 use: {
                     loader: 'babel-loader',
-                    options: {
-                        presets: ['@babel/preset-env','@babel/preset-typescript']
-                    }
+                    options: babelOptions('@babel/preset-typescript')
+
+                }
+            },
+            {
+                test: /\.jsx$/,
+                exclude: /(node_modules|bower_components)/,
+                use: {
+                    loader: 'babel-loader',
+                    options: babelOptions('@babel/preset-react')
+
                 }
             }
         ]
