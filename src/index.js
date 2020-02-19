@@ -7,7 +7,7 @@ import WebpackLogo from './assets/webpack-logo.png';
 
 const post = new Post("Webpack post title2", WebpackLogo);
 
-console.log("Post to string", post.toString())
-console.log("json", json)
-console.log("xml", xml)
-console.log("csv", csv)
+// console.log("Post to string", post.toString())
+// console.log("json", json)
+// console.log("xml", xml)
+// console.log("csv", csv)
