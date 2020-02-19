@@ -19,6 +19,20 @@ const optimisation = () => {
 };
 
 const fileName = ext => isDev ? `[name].${ext}`: `[name].[hash]${ext}`;
+const cssLoaders = (extraLoader) => {
+    const loaders = [{
+        loader: MiniCssExtractPlugin.loader,
+        options: {
+            hmr: isDev, // hot module replacement включается только в development mode
+            reloadAll: true
+        },
+    },
+        'css-loader'];
+    if(extraLoader){
+        loaders.push(extraLoader)
+    }
+    return loaders
+};
 
 console.log("isDev", isDev)
 module.exports = {
@@ -96,26 +110,17 @@ module.exports = {
         rules: [
             {
                 test: /\.css$/,
-                use: [{
-                    loader: MiniCssExtractPlugin.loader,
-                    options: {
-                        hmr: isDev, // hot module replacement включается только в development mode
-                        reloadAll: true
-                    },
-                },
-                    'css-loader']// Порядок выполнения перевернут (последнее выполняется первым).
+                use: cssLoaders()
             },
             {
                 test: /\.less$/,
-                use: [{
-                    loader: MiniCssExtractPlugin.loader,
-                    options: {
-                        hmr: isDev, // hot module replacement включается только в development mode
-                        reloadAll: true
-                    },
-                },
-                    'css-loader', 'less-loader']// Порядок выполнения перевернут (последнее выполняется первым).
+                use: cssLoaders('less-loader')// Порядок выполнения перевернут (последнее выполняется первым).
             },
+            {
+                test: /\.s[ac]ss$/,
+                use: cssLoaders('sass-loader')// Порядок выполнения перевернут (последнее выполняется первым).
+            }
+            ,
             {
                 test: /\.(png|jpg|webp|jpeg|svg|gif)$/,
                 use: ['file-loader']// webpack идет с право на лево, те сначала он

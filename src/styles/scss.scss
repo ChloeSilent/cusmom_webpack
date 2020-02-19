@@ -1,0 +1,14 @@
+$mainColor: red;
+$mainFZ: 30px;
+$mainBGC: purple;
+
+.hohoho {
+  padding: 20px;
+  border-radius: 5px;
+  color: $mainColor;
+  h2 {
+    display: block;
+    background-color: $mainBGC;
+    font-size: $mainFZ;
+  }
+}
